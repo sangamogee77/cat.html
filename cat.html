@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sangam's Talking Cat</title>
+    <style>
+        body {
+            background-color: #87CEEB;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- CAT CSS (Same as before) --- */
+        .cat-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            transform: scale(1.1);
+            margin-bottom: 20px;
+        }
+        .head {
+            width: 200px;
+            height: 180px;
+            background-color: #808080;
+            border-radius: 50% 50% 45% 45%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #555;
+            z-index: 2;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .ear {
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 70px solid #808080;
+            position: absolute;
+            top: 25px;
+            z-index: 1;
+        }
+        .ear.left { left: 55px; transform: rotate(-15deg); }
+        .ear.right { right: 55px; transform: rotate(15deg); }
+        .ear-inner {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 40px solid #ffb7b2;
+            position: absolute;
+            top: 15px;
+            left: -15px;
+        }
+        .eyes {
+            display: flex;
+            justify-content: space-between;
+            width: 100px;
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .eye {
+            width: 34px;
+            height: 34px;
+            background-color: white;
+            border-radius: 50%;
+            position: relative;
+            border: 2px solid #333;
+            overflow: hidden;
+            animation: blink 4s infinite;
+        }
+        .pupil {
+            width: 14px;
+            height: 22px;
+            background-color: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 5px;
+            left: 9px;
+        }
+        .nose {
+            width: 22px;
+            height: 16px;
+            background-color: #ffb7b2;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: absolute;
+            top: 105px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .mouth-area {
+            position: absolute;
+            top: 122px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        .mouth-line {
+            width: 2px;
+            height: 10px;
+            background-color: #333;
+            margin: 0 auto;
+        }
+        .mouth {
+            width: 40px;
+            height: 2px;
+            background-color: #333;
+            border-radius: 0 0 20px 20px;
+            margin-top: -2px;
+            transition: height 0.05s;
+        }
+        .mouth.talking {
+            background-color: #520000;
+            border: 2px solid #333;
+        }
+        @keyframes blink {
+            0%, 48%, 52%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.1); }
+        }
+
+        /* --- CONTROLS --- */
+        .controls {
+            text-align: center;
+            z-index: 10;
+            min-height: 150px;
+        }
+
+        /* Initial Start Button */
+        #setupBtn {
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px #0b7dda;
+            animation: popIn 0.5s;
+        }
+
+        /* Big Red Mic Button */
+        #micBtn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #f44336;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            display: none; /* Hidden until intro finishes */
+            font-size: 40px;
+            color: white;
+            outline: none;
+            transition: transform 0.1s, background-color 0.2s;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        #micBtn:active, #micBtn.pressed {
+            transform: scale(0.9);
+            background-color: #d32f2f;
+        }
+
+        #statusText {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            display: block;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cat-container">
+        <div class="ear left"><div class="ear-inner"></div></div>
+        <div class="ear right"><div class="ear-inner"></div></div>
+        <div class="head">
+            <div class="eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+            </div>
+            <div class="nose"></div>
+            <div class="mouth-area">
+                <div class="mouth-line"></div>
+                <div class="mouth" id="catMouth"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="setupBtn">Tap to Start</button>
+        <button id="micBtn">🎤</button>
+        <div id="statusText"></div>
+    </div>
+
+    <script>
+        const INTRO_TEXT = "Namaste, ma Sangam lay create gareko app ho. Malai use garna, yo mic ma hold gari rakhnu parxa, ani tapai ko hand mic bata hataye pachi, ma hajur ko voice repeat garxu.";
+        const PITCH_SPEED = 1.35;
+
+        // Audio Variables
+        let audioContext;
+        let mediaStream;
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let isTomSpeaking = false;
+        let synth = window.speechSynthesis;
+        let introAnimationInterval;
+
+        // Elements
+        const setupBtn = document.getElementById('setupBtn');
+        const micBtn = document.getElementById('micBtn');
+        const statusText = document.getElementById('statusText');
+        const mouth = document.getElementById('catMouth');
+
+        // --- 1. START & INTRO LOGIC ---
+        setupBtn.addEventListener('click', async () => {
+            try {
+                // Initialize Audio Context (Standard Browser Requirement)
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Get Mic Permission early
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // Hide Start Button
+                setupBtn.style.display = 'none';
+                
+                // Play Intro Message
+                playIntroMessage();
+
+            } catch (err) {
+                alert("Microphone permission denied! I cannot hear you.");
+                console.error(err);
+            }
+        });
+
+        function playIntroMessage() {
+            statusText.innerText = "Sangam's Cat is speaking...";
+            statusText.style.color = "#006400";
+            
+            const utter = new SpeechSynthesisUtterance(INTRO_TEXT);
+            
+            // Try to set a voice that sounds okay-ish (Hindi/Nepali prefered if installed)
+            // Browsers usually default to English robot if Nepali isn't found.
+            const voices = synth.getVoices();
+            // Try finding a Hindi voice for better accent, otherwise default
+            const preferredVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('ne'));
+            if(preferredVoice) utter.voice = preferredVoice;
+
+            utter.pitch = 1.2; // Little bit higher pitch
+            utter.rate = 0.9;  // Speak slowly
+
+            // ANIMATION START
+            utter.onstart = () => {
+                isTomSpeaking = true;
+                // Fake mouth animation for TTS (Robot voice doesn't give volume data)
+                introAnimationInterval = setInterval(() => {
+                    const randomHeight = Math.floor(Math.random() * 20) + 5;
+                    mouth.style.height = randomHeight + 'px';
+                    mouth.classList.add('talking');
+                }, 100);
+            };
+
+            // ANIMATION END
+            utter.onend = () => {
+                clearInterval(introAnimationInterval);
+                mouth.style.height = '2px';
+                mouth.classList.remove('talking');
+                isTomSpeaking = false;
+                
+                // Show the Mic Button now
+                micBtn.style.display = 'flex';
+                statusText.innerText = "Hold button to speak!";
+                statusText.style.color = "#333";
+            };
+
+            synth.speak(utter);
+        }
+
+
+        // --- 2. PUSH TO TALK LOGIC (Same as before) ---
+
+        // Mouse (Desktop)
+        micBtn.addEventListener('mousedown', startRecording);
+        window.addEventListener('mouseup', stopRecording);
+
+        // Touch (Mobile)
+        micBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); 
+            startRecording();
+        });
+        window.addEventListener('touchend', stopRecording);
+
+        function startRecording() {
+            if (!mediaStream || isRecording || isTomSpeaking) return;
+
+            micBtn.classList.add('pressed');
+            statusText.innerText = "Listening... 🔴";
+            statusText.style.color = "red";
+            
+            audioChunks = [];
+            mediaRecorder = new MediaRecorder(mediaStream);
+            
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+
+            micBtn.classList.remove('pressed');
+            statusText.innerText = "Processing...";
+            statusText.style.color = "#333";
+
+            mediaRecorder.stop();
+            isRecording = false;
+
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                if (blob.size < 500) { // Ignore accidental clicks
+                    statusText.innerText = "Hold button to speak!";
+                    return;
+                }
+
+                const arrayBuffer = await blob.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                playAsCat(audioBuffer);
+            };
+        }
+
+        // --- 3. PLAYBACK (High Pitch) ---
+        function playAsCat(buffer) {
+            isTomSpeaking = true;
+            statusText.innerText = "Repeating... 🔊";
+            statusText.style.color = "green";
+
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.playbackRate.value = PITCH_SPEED;
+
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            source.start(0);
+            animateMouthRealtime(analyser); // Use Real volume for this part
+
+            source.onended = () => {
+                isTomSpeaking = false;
+                mouth.style.height = '2px';
+                mouth.classList.remove('talking');
+                statusText.innerText = "Hold button to speak!";
+                statusText.style.color = "#333";
+            };
+        }
+
+        function animateMouthRealtime(analyserNode) {
+            if (!isTomSpeaking) return;
+            const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+            analyserNode.getByteFrequencyData(dataArray);
+            
+            let sum = 0;
+            for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            let avg = sum / dataArray.length;
+
+            let height = 5 + (avg / 2); 
+            mouth.style.height = height + 'px';
+            mouth.classList.add('talking');
+            requestAnimationFrame(() => animateMouthRealtime(analyserNode));
+        }
+
+    </script>
+</body>
+</html>
