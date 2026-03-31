@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RKO Hub - Cloud Repository</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- BACKGROUND ANIMATION CANVAS --- */
+        #network-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Main Container */
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        /* --- LOGIN SCREEN STYLES --- */
+        #login-screen {
+            padding: 50px 30px;
+            border-radius: 30px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        .subtitle {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            color: #aaa;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 18px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input[type="password"]:focus, input[type="text"]:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
+        }
+
+        button.btn-primary {
+            width: 100%;
+            background: linear-gradient(45deg, #ffffff, #dcdcdc);
+            color: #000;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        button.btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        button.btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        .error-msg {
+            color: #ff4757;
+            font-size: 0.85rem;
+            margin-top: 15px;
+            height: 20px;
+            font-weight: 500;
+        }
+
+        /* --- MAIN APP SCREEN STYLES --- */
+        #app-screen {
+            display: none;
+            animation: slideUpFade 0.6s ease;
+            min-height: 95vh;
+            border-radius: 30px;
+            padding-bottom: 30px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0 30px 0;
+        }
+
+        .tool-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 0 10px;
+        }
+
+        .tool-card {
+            display: flex;
+            align-items: center;
+            background-color: rgba(20, 20, 20, 0.7);
+            padding: 18px 25px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: 0.5s;
+        }
+
+        .tool-card:hover::before {
+            left: 100%;
+        }
+
+        .tool-card:hover {
+            background-color: rgba(40, 40, 40, 0.8);
+            transform: scale(1.03);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            z-index: 2;
+        }
+
+        /* Locked item style */
+        .locked-card {
+            border: 1px solid rgba(255, 71, 87, 0.3);
+        }
+        .locked-card .tool-arrow {
+            color: #ff4757;
+        }
+        .locked-card:hover .tool-arrow {
+            color: #ff6b81;
+        }
+
+        .tool-icon {
+            font-size: 1.3rem;
+            width: 40px;
+            text-align: left;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .tool-name {
+            flex-grow: 1;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #f1f2f6;
+            letter-spacing: 0.5px;
+        }
+
+        .tool-arrow {
+            color: #555;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .tool-card:hover .tool-arrow {
+            color: #fff;
+            transform: translateX(4px);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.7rem;
+            color: #777;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .dev-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .dev-name {
+            color: #fff;
+            font-weight: 700;
+            background: linear-gradient(90deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .social-links a {
+            color: #aaa;
+            font-size: 1.3rem;
+            text-decoration: none;
+            transition: 0.3s;
+            margin: 0 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .social-links a:hover {
+            color: #fff;
+            transform: scale(1.2) translateY(-2px);
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* --- TASK MODAL STYLES --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 380px;
+            padding: 30px 20px;
+            border-radius: 25px;
+            position: relative;
+            text-align: center;
+            animation: slideUpFade 0.4s ease;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-size: 1.5rem;
+            color: #aaa;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .close-btn:hover { color: #fff; transform: scale(1.1); }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .modal-desc {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .task-btn {
+            background-color: rgba(30, 30, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 15px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .task-btn:hover { background-color: rgba(50, 50, 50, 0.8); }
+        .task-btn i.fa-tiktok { color: #ff0050; }
+        
+        .task-btn.completed {
+            background-color: rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+            color: #2ecc71;
+            cursor: default;
+        }
+
+        #key-reveal-box {
+            display: none;
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px dashed #2ecc71;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+        #key-reveal-box span {
+            display: block;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        #key-reveal-box h2 {
+            color: #2ecc71;
+            letter-spacing: 5px;
+            font-size: 1.8rem;
+        }
+
+        .modal-input {
+            letter-spacing: 4px !important;
+            padding: 12px !important;
+            font-size: 1.2rem !important;
+            margin-bottom: 10px !important;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Icon Colors */
+        .c-yellow { color: #f1c40f; }
+        .c-green { color: #2ecc71; }
+        .c-cyan { color: #00cec9; }
+        .c-red { color: #ff4757; }
+        .c-purple { color: #9b59b6; }
+        .c-pink { color: #fd79a8; }
+        .c-orange { color: #ffa502; }
+        .c-blue { color: #3742fa; }
+    </style>
+</head>
+<body>
+
+    <!-- Professional DNA/Network Background Canvas -->
+    <canvas id="network-canvas"></canvas>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="container glass-panel">
+        <h1 class="title">RKO HUB</h1>
+        <p class="subtitle">ENTER PASSWORD</p>
+
+        <input type="password" id="password" placeholder="••••">
+        <button class="btn-primary" onclick="verifyPassword()">ACCESS NOW</button>
+        <p id="error-msg" class="error-msg"></p>
+
+        <!-- Login Screen Social Info -->
+        <div class="social-links" style="margin-top: 30px;">
+            <p style="font-size: 0.7rem; color: #555; margin-bottom: 5px; letter-spacing: 1px;">DEVELOPER</p>
+            <a href="https://www.tiktok.com/@saangam_yogi.0" target="_blank"><i class="fab fa-tiktok"></i> <span style="font-size:0.8rem; margin-left: 5px;">saangam_yogi.0</span></a>
+        </div>
+    </div>
+
+    <!-- MAIN APP SCREEN -->
+    <div id="app-screen" class="container glass-panel">
+        <div class="header">
+            <h1 class="title">RKO</h1>
+            <p class="subtitle" style="color: #3498db;">CLOUD REPOSITORY</p>
+        </div>
+
+        <div class="tool-list">
+            <!-- Normal Link -->
+            <a href="https://visit-web-ff.onrender.com/" class="tool-card" target="_blank">
+                <i class="fa-solid fa-eye tool-icon c-yellow"></i>
+                <span class="tool-name">FF Visit Tool</span>
+                <i class="fa-solid fa-chevron-right tool-arrow"></i>
+            </a>
+
+            <!-- Normal Link -->
+            <a href="https://bot-friend-add.onrender.com/" class="tool-card" target="_blank">
+                <i class="fa-solid fa-robot tool-icon c-green"></i>
+                <span class="tool-name">Bot Friend Add</span>
+                <i class="fa-solid fa-chevron-right tool-arrow"></i>
+            </a>
+
+            <!-- LOCKED LINK 1: Emote 5 Group -->
+            <div class="tool-card locked-card" onclick="openLockModal('https://emote-web-swmj.onrender.com/')">
+                <i class="fa-solid fa-users tool-icon c-cyan"></i>
+                <span class="tool-name">Emote 5 Group <i class="fa-solid fa-lock" style="font-size:0.7rem; color:#ff4757; margin-left:5px;"></i></span>
+                <i class="fa-solid fa-key tool-arrow"></i>
+            </div>
+
+            <!-- Normal Link -->
+            <a href="https://ffban-ckrpro-raz3.onrender.com/" class="tool-card" target="_blank">
+                <i class="fa-solid fa-ban tool-icon c-red"></i>
+                <span class="tool-name">Access Bot Token</span>
+                <i class="fa-solid fa-chevron-right tool-arrow"></i>
+            </a>
+
+            <!-- Normal Link -->
+            <a href="https://ff-info-tool.onrender.com/" class="tool-card" target="_blank">
+                <i class="fa-solid fa-circle-info tool-icon c-purple"></i>
+                <span class="tool-name">FF Info Tool</span>
+                <i class="fa-solid fa-chevron-right tool-arrow"></i>
+            </a>
+
+            <!-- LOCKED LINK 2: FF Free Likes -->
+            <div class="tool-card locked-card" onclick="openLockModal('https://like-web-1-0ibd.onrender.com/')">
+                <i class="fa-solid fa-heart tool-icon c-pink"></i>
+                <span class="tool-name">FF Free Likes <i class="fa-solid fa-lock" style="font-size:0.7rem; color:#ff4757; margin-left:5px;"></i></span>
+                <i class="fa-solid fa-key tool-arrow"></i>
+            </div>
+
+            <!-- Normal Link -->
+            <a href="https://ckrpro-linkshortner.onrender.com/" class="tool-card" target="_blank">
+                <i class="fa-solid fa-link tool-icon c-orange"></i>
+                <span class="tool-name">Link Shortener</span>
+                <i class="fa-solid fa-chevron-right tool-arrow"></i>
+            </a>
+
+            <!-- Normal Link -->
+            <a href="https://ckrpro-get-accestoken-6xhm.onrender.com/" class="tool-card" target="_blank">
+                <i class="fa-solid fa-right-left tool-icon c-blue"></i>
+                <span class="tool-name">Convert Access Token</span>
+                <i class="fa-solid fa-chevron-right tool-arrow"></i>
+            </a>
+
+            <!-- Normal Link -->
+            <a href="https://get-access-token-k85w.onrender.com/" class="tool-card" target="_blank">
+                <i class="fa-solid fa-key tool-icon c-yellow"></i>
+                <span class="tool-name">Get Eat Token</span>
+                <i class="fa-solid fa-chevron-right tool-arrow"></i>
+            </a>
+
+            <!-- Normal Link -->
+            <a href="https://bio-changer-access-token-ufzm.onrender.com/" class="tool-card" target="_blank">
+                <i class="fa-solid fa-id-card tool-icon c-green"></i>
+                <span class="tool-name">Bio Changer</span>
+                <i class="fa-solid fa-chevron-right tool-arrow"></i>
+            </a>
+        </div>
+
+        <div class="footer">
+            DEVELOPED BY
+            <div class="dev-info">
+                <span class="dev-name">saangam_yogi.0</span>
+                <div class="social-links">
+                    <a href="https://www.tiktok.com/@saangam_yogi.0" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+                    <a href="https://www.instagram.com/saangam_yogi.0" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TASK/SURVEY MODAL FOR LOCKED LINKS -->
+    <div id="task-modal" class="modal-overlay">
+        <div class="modal-content glass-panel">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 class="modal-title">Unlock Tool</h2>
+            <p class="modal-desc">Complete all tasks below to generate the Access Key.</p>
+            
+            <div class="task-list">
+                <button id="task-0" class="task-btn" onclick="doTask(0, 'https://www.tiktok.com/@saangam_yogi.0')">
+                    <span><i class="fab fa-tiktok"></i> Follow saangam_yogi.0</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button id="task-1" class="task-btn" onclick="doTask(1, 'https://vt.tiktok.com/ZSHFsKPxq/')">
+                    <span><i class="fa-solid fa-heart" style="color:#ff4757;"></i> Like Video 1</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button id="task-2" class="task-btn" onclick="doTask(2, 'https://vt.tiktok.com/ZSHFG8jBV/')">
+                    <span><i class="fa-solid fa-heart" style="color:#ff4757;"></i> Like Video 2</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button id="task-3" class="task-btn" onclick="doTask(3, 'https://vt.tiktok.com/ZSHFsErfD/')">
+                    <span><i class="fa-solid fa-heart" style="color:#ff4757;"></i> Like Video 3</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- This box shows up after completing tasks -->
+            <div id="key-reveal-box">
+                <span>YOUR ACCESS KEY IS</span>
+                <h2>1122</h2>
+            </div>
+
+            <input type="text" id="tool-key-input" class="modal-input" placeholder="ENTER KEY">
+            <button class="btn-primary" onclick="verifyToolKey()">VERIFY & OPEN</button>
+            <p id="tool-error-msg" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // --- LOGIN LOGIC ---
+        function verifyPassword() {
+            const passInput = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+            const loginScreen = document.getElementById('login-screen');
+            const appScreen = document.getElementById('app-screen');
+
+            // Password is set to RKO
+            if (passInput === "RKO") {
+                loginScreen.style.display = 'none';
+                appScreen.style.display = 'block';
+                document.getElementById('password').value = "";
+                errorMsg.innerText = "";
+                createBurst(window.innerWidth / 2, window.innerHeight / 2, 30); // effect
+            } else {
+                errorMsg.innerText = "Incorrect Password.";
+                loginScreen.style.transform = "translateX(-10px)";
+                setTimeout(() => loginScreen.style.transform = "translateX(10px)", 50);
+                setTimeout(() => loginScreen.style.transform = "translateX(-10px)", 100);
+                setTimeout(() => loginScreen.style.transform = "translateX(0)", 150);
+            }
+        }
+
+        document.getElementById("password").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                verifyPassword();
+            }
+        });
+
+        // --- TASK/SURVEY MODAL LOGIC ---
+        let currentLockedUrl = "";
+        let tasksStatus = [false, false, false, false];
+
+        function openLockModal(targetUrl) {
+            currentLockedUrl = targetUrl;
+            document.getElementById('task-modal').style.display = 'flex';
+            document.getElementById('tool-key-input').value = '';
+            document.getElementById('tool-error-msg').innerText = '';
+        }
+
+        function closeModal() {
+            document.getElementById('task-modal').style.display = 'none';
+        }
+
+        function doTask(index, url) {
+            // Open link in new tab
+            window.open(url, '_blank');
+            
+            let btn = document.getElementById('task-' + index);
+            
+            // If already completed, do nothing
+            if(tasksStatus[index] === true) return;
+
+            // Fake loading state
+            btn.innerHTML = '<span><i class="fa-solid fa-spinner fa-spin"></i> Verifying...</span>';
+            btn.style.opacity = '0.7';
+            btn.style.pointerEvents = 'none'; // Disable clicking again
+
+            // Wait 3 seconds to simulate checking TikTok
+            setTimeout(() => {
+                tasksStatus[index] = true;
+                btn.classList.add('completed');
+                btn.innerHTML = '<span><i class="fa-solid fa-circle-check"></i> Verified</span>';
+                btn.style.opacity = '1';
+                checkAllTasksCompleted();
+            }, 3000);
+        }
+
+        function checkAllTasksCompleted() {
+            // Check if all 4 values in array are true
+            if (tasksStatus.every(status => status === true)) {
+                document.getElementById('key-reveal-box').style.display = 'block';
+                // Small burst effect
+                createBurst(window.innerWidth / 2, window.innerHeight / 2, 20);
+            }
+        }
+
+        function verifyToolKey() {
+            let inputKey = document.getElementById('tool-key-input').value;
+            let errorMsg = document.getElementById('tool-error-msg');
+            
+            if (inputKey === "1122") {
+                // Success
+                window.open(currentLockedUrl, '_blank');
+                closeModal();
+            } else {
+                // Fail
+                errorMsg.innerText = "Invalid Key! Complete tasks above.";
+                let modalContent = document.querySelector('.modal-content');
+                modalContent.style.transform = "translateX(-10px)";
+                setTimeout(() => modalContent.style.transform = "translateX(10px)", 50);
+                setTimeout(() => modalContent.style.transform = "translateX(-10px)", 100);
+                setTimeout(() => modalContent.style.transform = "translateX(0)", 150);
+            }
+        }
+
+
+        // --- DNA / NETWORK CANVAS ANIMATION LOGIC ---
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray = [];
+        let mouse = { x: null, y: null, radius: 120 }
+
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x; mouse.y = event.y;
+        });
+        window.addEventListener('touchmove', function(event) {
+            mouse.x = event.touches[0].clientX; mouse.y = event.touches[0].clientY;
+        });
+        window.addEventListener('mouseout', function() {
+            mouse.x = undefined; mouse.y = undefined;
+        });
+        window.addEventListener('click', function(event) {
+            createBurst(event.x, event.y, 8);
+        });
+        window.addEventListener('touchstart', function(event) {
+            createBurst(event.touches[0].clientX, event.touches[0].clientY, 8);
+        });
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            init();
+        });
+
+        function createBurst(x, y, amount) {
+            for (let i = 0; i < amount; i++) {
+                particlesArray.push(new Particle(x, y, true));
+            }
+        }
+
+        class Particle {
+            constructor(x, y, isBurst = false) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 1.5;
+                this.speedY = (Math.random() - 0.5) * 1.5;
+                if(isBurst) {
+                    this.speedX = (Math.random() - 0.5) * 5;
+                    this.speedY = (Math.random() - 0.5) * 5;
+                }
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if(this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                if(this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.width * canvas.height) / 8000;
+            for(let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for(let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+                for(let j = i; j < particlesArray.length; j++) {
+                    let dx = particlesArray[i].x - particlesArray[j].x;
+                    let dy = particlesArray[i].y - particlesArray[j].y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    if(distance < 90) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(100, 200, 255, ${1 - distance/90})`; 
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(particlesArray[i].x, particlesArray[i].y);
+                        ctx.lineTo(particlesArray[j].x, particlesArray[j].y);
+                        ctx.stroke();
+                    }
+                }
+                if (mouse.x != null) {
+                    let dxMouse = particlesArray[i].x - mouse.x;
+                    let dyMouse = particlesArray[i].y - mouse.y;
+                    let distanceMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+                    if (distanceMouse < mouse.radius) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distanceMouse/mouse.radius})`;
+                        ctx.lineWidth = 1.2;
+                        ctx.moveTo(particlesArray[i].x, particlesArray[i].y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            if(particlesArray.length > 200) particlesArray.splice(0, 2);
+            requestAnimationFrame(animate);
+        }
+        init();
+        animate();
+    </script>
+</body>
+</html>            transform: translate(-50%, -50%);
+            border: 4px solid #555;
+            z-index: 2;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .ear {
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 70px solid #808080;
+            position: absolute;
+            top: 25px;
+            z-index: 1;
+        }
+        .ear.left { left: 55px; transform: rotate(-15deg); }
+        .ear.right { right: 55px; transform: rotate(15deg); }
+        .ear-inner {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 40px solid #ffb7b2;
+            position: absolute;
+            top: 15px;
+            left: -15px;
+        }
+        .eyes {
+            display: flex;
+            justify-content: space-between;
+            width: 100px;
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .eye {
+            width: 34px;
+            height: 34px;
+            background-color: white;
+            border-radius: 50%;
+            position: relative;
+            border: 2px solid #333;
+            overflow: hidden;
+            animation: blink 4s infinite;
+        }
+        .pupil {
+            width: 14px;
+            height: 22px;
+            background-color: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 5px;
+            left: 9px;
+        }
+        .nose {
+            width: 22px;
+            height: 16px;
+            background-color: #ffb7b2;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: absolute;
+            top: 105px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .mouth-area {
+            position: absolute;
+            top: 122px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        .mouth-line {
+            width: 2px;
+            height: 10px;
+            background-color: #333;
+            margin: 0 auto;
+        }
+        .mouth {
+            width: 40px;
+            height: 2px;
+            background-color: #333;
+            border-radius: 0 0 20px 20px;
+            margin-top: -2px;
+            transition: height 0.05s;
+        }
+        .mouth.talking {
+            background-color: #520000;
+            border: 2px solid #333;
+        }
+        @keyframes blink {
+            0%, 48%, 52%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.1); }
+        }
+
+        /* --- CONTROLS --- */
+        .controls {
+            text-align: center;
+            z-index: 10;
+            min-height: 150px;
+        }
+
+        /* Initial Start Button */
+        #setupBtn {
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px #0b7dda;
+            animation: popIn 0.5s;
+        }
+
+        /* Big Red Mic Button */
+        #micBtn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #f44336;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            display: none; /* Hidden until intro finishes */
+            font-size: 40px;
+            color: white;
+            outline: none;
+            transition: transform 0.1s, background-color 0.2s;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        #micBtn:active, #micBtn.pressed {
+            transform: scale(0.9);
+            background-color: #d32f2f;
+        }
+
+        #statusText {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            display: block;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cat-container">
+        <div class="ear left"><div class="ear-inner"></div></div>
+        <div class="ear right"><div class="ear-inner"></div></div>
+        <div class="head">
+            <div class="eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+            </div>
+            <div class="nose"></div>
+            <div class="mouth-area">
+                <div class="mouth-line"></div>
+                <div class="mouth" id="catMouth"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="setupBtn">Tap to Start</button>
+        <button id="micBtn">🎤</button>
+        <div id="statusText"></div>
+    </div>
+
+    <script>
+        const INTRO_TEXT = "Namaste, ma Sangam lay create gareko app ho. Malai use garna, yo mic ma hold gari rakhnu parxa, ani tapai ko hand mic bata hataye pachi, ma hajur ko voice repeat garxu.";
+        const PITCH_SPEED = 1.35;
+
+        // Audio Variables
+        let audioContext;
+        let mediaStream;
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let isTomSpeaking = false;
+        let synth = window.speechSynthesis;
+        let introAnimationInterval;
+
+        // Elements
+        const setupBtn = document.getElementById('setupBtn');
+        const micBtn = document.getElementById('micBtn');
+        const statusText = document.getElementById('statusText');
+        const mouth = document.getElementById('catMouth');
+
+        // --- 1. START & INTRO LOGIC ---
+        setupBtn.addEventListener('click', async () => {
+            try {
+                // Initialize Audio Context (Standard Browser Requirement)
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Get Mic Permission early
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // Hide Start Button
+                setupBtn.style.display = 'none';
+                
+                // Play Intro Message
+                playIntroMessage();
+
+            } catch (err) {
+                alert("Microphone permission denied! I cannot hear you.");
+                console.error(err);
+            }
+        });
+
+        function playIntroMessage() {
+            statusText.innerText = "Sangam's Cat is speaking...";
+            statusText.style.color = "#006400";
+            
+            const utter = new SpeechSynthesisUtterance(INTRO_TEXT);
+            
+            // Try to set a voice that sounds okay-ish (Hindi/Nepali prefered if installed)
+            // Browsers usually default to English robot if Nepali isn't found.
+            const voices = synth.getVoices();
+            // Try finding a Hindi voice for better accent, otherwise default
+            const preferredVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('ne'));
+            if(preferredVoice) utter.voice = preferredVoice;
+
+            utter.pitch = 1.2; // Little bit higher pitch
+            utter.rate = 0.9;  // Speak slowly
+
+            // ANIMATION START
+            utter.onstart = () => {
+                isTomSpeaking = true;
+                // Fake mouth animation for TTS (Robot voice doesn't give volume data)
+                introAnimationInterval = setInterval(() => {
+                    const randomHeight = Math.floor(Math.random() * 20) + 5;
+                    mouth.style.height = randomHeight + 'px';
+                    mouth.classList.add('talking');
+                }, 100);
+            };
+
+            // ANIMATION END
+            utter.onend = () => {
+                clearInterval(introAnimationInterval);
+                mouth.style.height = '2px';
+                mouth.classList.remove('talking');
+                isTomSpeaking = false;
+                
+                // Show the Mic Button now
+                micBtn.style.display = 'flex';
+                statusText.innerText = "Hold button to speak!";
+                statusText.style.color = "#333";
+            };
+
+            synth.speak(utter);
+        }
+
+
+        // --- 2. PUSH TO TALK LOGIC (Same as before) ---
+
+        // Mouse (Desktop)
+        micBtn.addEventListener('mousedown', startRecording);
+        window.addEventListener('mouseup', stopRecording);
+
+        // Touch (Mobile)
+        micBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); 
+            startRecording();
+        });
+        window.addEventListener('touchend', stopRecording);
+
+        function startRecording() {
+            if (!mediaStream || isRecording || isTomSpeaking) return;
+
+            micBtn.classList.add('pressed');
+            statusText.innerText = "Listening... 🔴";
+            statusText.style.color = "red";
+            
+            audioChunks = [];
+            mediaRecorder = new MediaRecorder(mediaStream);
+            
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+
+            micBtn.classList.remove('pressed');
+            statusText.innerText = "Processing...";
+            statusText.style.color = "#333";
+
+            mediaRecorder.stop();
+            isRecording = false;
+
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                if (blob.size < 500) { // Ignore accidental clicks
+                    statusText.innerText = "Hold button to speak!";
+                    return;
+                }
+
+                const arrayBuffer = await blob.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                playAsCat(audioBuffer);
+            };
+        }
+
+        // --- 3. PLAYBACK (High Pitch) ---
+        function playAsCat(buffer) {
+            isTomSpeaking = true;
+            statusText.innerText = "Repeating... 🔊";
+            statusText.style.color = "green";
+
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.playbackRate.value = PITCH_SPEED;
+
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            source.start(0);
+            animateMouthRealtime(analyser); // Use Real volume for this part
+
+            source.onended = () => {
+                isTomSpeaking = false;
+                mouth.style.height = '2px';
+                mouth.classList.remove('talking');
+                statusText.innerText = "Hold button to speak!";
+                statusText.style.color = "#333";
+            };
+        }
+
+        function animateMouthRealtime(analyserNode) {
+            if (!isTomSpeaking) return;
+            const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+            analyserNode.getByteFrequencyData(dataArray);
+            
+            let sum = 0;
+            for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            let avg = sum / dataArray.length;
+
+            let height = 5 + (avg / 2); 
+            mouth.style.height = height + 'px';
+            mouth.classList.add('talking');
+            requestAnimationFrame(() => animateMouthRealtime(analyserNode));
+        }
+
+    </script>
+</body>
+</html>
